@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Signing you in…</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #f0fdf4; color: #166534; text-align: center; padding: 24px;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid #bbf7d0; border-top-color: #16a34a;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    a { color: #15803d; font-weight: 600; }
+    .hint { margin-top: 12px; color: #4b5563; font-size: 14px; max-width: 320px; }
+  </style>
+</head>
+<body>
+  <div class="spinner" role="status" aria-label="Signing in"></div>
+  <div id="msg">Returning you to PumpkinPro…</div>
+  <div class="hint" id="hint" hidden>
+    If the app didn't reopen automatically, tap the button below.
+  </div>
+  <p><a id="manual" href="#" hidden>Open PumpkinPro</a></p>
+
+  <script>
+    // Base44 redirects here (an https URL it trusts) with the login result in the
+    // query string. We bounce the same params to the app's custom-scheme deep link,
+    // which Android routes back into the native app. This avoids relying on Base44
+    // redirecting to a non-https scheme directly (which it does not guarantee).
+    (function () {
+      var APP_SCHEME = 'com.pumpkinpro.app://auth-callback';
+      var params = window.location.search || '';
+      // Some setups put params in the hash; support both.
+      if (!params && window.location.hash.indexOf('access_token') !== -1) {
+        params = '?' + window.location.hash.replace(/^#/, '');
+      }
+      var target = APP_SCHEME + params;
+
+      var manual = document.getElementById('manual');
+      manual.href = target;
+
+      // Attempt the redirect immediately.
+      try { window.location.replace(target); } catch (e) { window.location.href = target; }
+
+      // If we're still here after a moment, the app may not have opened — show a manual link.
+      setTimeout(function () {
+        document.getElementById('msg').textContent = 'Almost there…';
+        document.getElementById('hint').hidden = false;
+        manual.hidden = false;
+      }, 1500);
+    })();
+  </script>
+</body>
+</html>
